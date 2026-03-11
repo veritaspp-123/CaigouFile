@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>采购实施方案编制工具</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --border: #e5e7eb;
+      --ok: #16a34a;
+      --danger: #dc2626;
+      --label-bg: #eef4ff;
+      --chapter-bg: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .container {
+      max-width: 1320px;
+      margin: 20px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 560px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    }
+    h1 { margin: 0 0 8px; font-size: 24px; }
+    h2 { margin: 0 0 10px; font-size: 18px; }
+    h3 { margin: 10px 0 8px; font-size: 15px; }
+    .muted { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+    .chapter-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .chapter-tab {
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #334155;
+      border-radius: 8px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .chapter-tab.active {
+      background: #e8f0ff;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+
+    .chapter-pane {
+      display: none;
+      background: var(--chapter-bg);
+      border: 1px solid #dbe4f0;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .chapter-pane.active { display: block; }
+
+    .field {
+      margin-bottom: 12px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    label {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: var(--label-bg);
+      border: 1px solid #c7d2fe;
+      border-radius: 6px;
+      padding: 4px 8px;
+      color: #1e3a8a;
+    }
+    .required::after {
+      content: " *";
+      color: #b91c1c;
+      font-weight: 800;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: #fff;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    .inline { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .group-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+    .group-item {
+      border: 1px dashed #93c5fd;
+      background: #eff6ff;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .multi-options { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+    .multi-options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: normal;
+      margin: 0;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #111827;
+    }
+    .multi-options input { width: auto; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .section-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin: 8px 0 0;
+      gap: 8px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+    }
+    button.secondary { background: #374151; }
+    button.success { background: var(--ok); }
+    button.danger { background: var(--danger); }
+    button.warn { background: #b45309; }
+
+    .preview {
+      white-space: pre-wrap;
+      line-height: 1.8;
+      font-size: 15px;
+      background: #fcfcfd;
+      border: 1px dashed #d1d5db;
+      border-radius: 10px;
+      padding: 16px;
+      min-height: 540px;
+    }
+
+    .admin-panel {
+      margin-top: 10px;
+      border: 1px solid #fed7aa;
+      background: #fffbeb;
+      border-radius: 10px;
+      padding: 10px;
+      display: none;
+    }
+    .admin-panel.open { display: block; }
+    .code {
+      font-family: Consolas, Monaco, monospace;
+      font-size: 13px;
+      min-height: 110px;
+      white-space: pre;
+    }
+
+    .save-hint {
+      font-size: 12px;
+      color: #475569;
+      margin-top: 2px;
+    }
+
+    @media (max-width: 1100px) {
+      .container { grid-template-columns: 1fr; }
+      .inline { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="card">
+      <h1>采购实施方案编制工具</h1>
+      <p class="muted">支持 6 章节框架。请按章节录入并保存，最后统一生成文档。</p>
+
+      <div class="chapter-tabs" id="chapterTabs"></div>
+
+      <div id="chapter-1" class="chapter-pane active" data-chapter="1">
+        <h2>一、项目背景及采购意义</h2>
+
+        <div class="field">
+          <label for="projectBackground" class="required">项目背景</label>
+          <textarea id="projectBackground" placeholder="请输入项目背景说明"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="necessity" class="required">需求必要性</label>
+          <textarea id="necessity" placeholder="请输入采购必要性说明"></textarea>
+        </div>
+
+        <div class="field">
+          <label>评审文件</label>
+          <div id="reviewGroupList" class="group-list"></div>
+          <button id="addGroupBtn" type="button" class="secondary">新增评审文件</button>
+        </div>
+
+        <div class="field">
+          <label>标的物类型</label>
+          <div class="multi-options">
+            <label><input type="checkbox" name="subjectMatterType" value="货物">货物</label>
+            <label><input type="checkbox" name="subjectMatterType" value="服务">服务</label>
+          </div>
+        </div>
+
+        <div class="section-actions">
+          <button type="button" class="warn save-chapter-btn" data-save="1">暂存第1章</button>
+        </div>
+        <div class="save-hint" id="save-hint-1"></div>
+      </div>
+
+      <div id="chapter-2" class="chapter-pane" data-chapter="2">
+        <h2>二、采购需求与范围</h2>
+        <div class="field">
+          <label for="chapter2Text" class="required">章节正文</label>
+          <textarea id="chapter2Text" placeholder="请输入第2章正文内容"></textarea>
+        </div>
+        <div class="section-actions">
+          <button type="button" class="warn save-chapter-btn" data-save="2">暂存第2章</button>
+        </div>
+        <div class="save-hint" id="save-hint-2"></div>
+      </div>
+
+      <div id="chapter-3" class="chapter-pane" data-chapter="3">
+        <h2>三、采购方式与组织形式</h2>
+        <div class="field">
+          <label for="chapter3Text" class="required">章节正文</label>
+          <textarea id="chapter3Text" placeholder="请输入第3章正文内容"></textarea>
+        </div>
+        <div class="section-actions">
+          <button type="button" class="warn save-chapter-btn" data-save="3">暂存第3章</button>
+        </div>
+        <div class="save-hint" id="save-hint-3"></div>
+      </div>
+
+      <div id="chapter-4" class="chapter-pane" data-chapter="4">
+        <h2>四、评审与定标原则</h2>
+        <div class="field">
+          <label for="chapter4Text" class="required">章节正文</label>
+          <textarea id="chapter4Text" placeholder="请输入第4章正文内容"></textarea>
+        </div>
+        <div class="section-actions">
+          <button type="button" class="warn save-chapter-btn" data-save="4">暂存第4章</button>
+        </div>
+        <div class="save-hint" id="save-hint-4"></div>
+      </div>
+
+      <div id="chapter-5" class="chapter-pane" data-chapter="5">
+        <h2>五、合同与履约管理</h2>
+        <div class="field">
+          <label for="chapter5Text" class="required">章节正文</label>
+          <textarea id="chapter5Text" placeholder="请输入第5章正文内容"></textarea>
+        </div>
+        <div class="section-actions">
+          <button type="button" class="warn save-chapter-btn" data-save="5">暂存第5章</button>
+        </div>
+        <div class="save-hint" id="save-hint-5"></div>
+      </div>
+
+      <div id="chapter-6" class="chapter-pane" data-chapter="6">
+        <h2>六、进度安排与保障措施</h2>
+        <div class="field">
+          <label for="chapter6Text" class="required">章节正文</label>
+          <textarea id="chapter6Text" placeholder="请输入第6章正文内容"></textarea>
+        </div>
+        <div class="section-actions">
+          <button type="button" class="warn save-chapter-btn" data-save="6">暂存第6章</button>
+        </div>
+        <div class="save-hint" id="save-hint-6"></div>
+      </div>
+
+      <div class="actions">
+        <button id="generateBtn" type="button">生成文档</button>
+        <button id="copyBtn" type="button" class="secondary">复制文本</button>
+        <button id="downloadWordBtn" type="button" class="success">导出 Word</button>
+        <button id="saveAllBtn" type="button" class="warn">暂存全部章节</button>
+        <button id="adminToggleBtn" type="button" class="secondary">管理员：模板映射管理</button>
+        <button id="resetFormBtn" type="button" class="danger">重置表单</button>
+      </div>
+
+      <div id="adminPanel" class="admin-panel">
+        <h3>模板与映射管理（管理员）</h3>
+        <p class="muted">仅管理员可修改。请勿随意更改模板与映射，否则可能导致文档生成错误。</p>
+        <div class="field">
+          <label for="chapter1TemplateEditor">第1章模板正文</label>
+          <textarea id="chapter1TemplateEditor" class="code"></textarea>
+        </div>
+        <div class="field">
+          <label for="reviewLineTemplateEditor">评审文件条目模板</label>
+          <textarea id="reviewLineTemplateEditor" class="code"></textarea>
+        </div>
+        <div class="field">
+          <label for="mappingJsonEditor">字段映射配置（JSON）</label>
+          <textarea id="mappingJsonEditor" class="code"></textarea>
+        </div>
+        <div class="actions">
+          <button id="saveAdminConfigBtn" type="button" class="warn">保存管理配置</button>
+          <button id="resetEditorBtn" type="button" class="secondary">重置管理配置</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>文档预览</h2>
+      <div id="preview" class="preview">请填写信息后点击“生成文档”。</div>
+    </section>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const STORAGE_KEYS = {
+      chapter1: 'cg_chapter_1',
+      chapter2: 'cg_chapter_2',
+      chapter3: 'cg_chapter_3',
+      chapter4: 'cg_chapter_4',
+      chapter5: 'cg_chapter_5',
+      chapter6: 'cg_chapter_6',
+      admin: 'cg_admin_config'
+    };
+
+    const chapterTitles = ['第1章', '第2章', '第3章', '第4章', '第5章', '第6章'];
+
+    const defaultChapter1Template = `一、项目背景及采购意义\n\n{{backround}}\n\n{{necessary}}\n\n{{certifiParagraph}}\n\n本项目属于《采购管理办法》规定的{{subjectMatterType}}标的物。`;
+
+    const defaultReviewLineTemplate = `{{index}}. {{certifiFileDate}}，{{certifiFileName}}通过{{certifiSystem}}，\n（评审证明书见附件x，评审组长{{certifiExpert}}）`;
+
+    const defaultMapping = {
+      '{{backround}}': 'projectBackground',
+      '{{necessary}}': 'necessity',
+      '{{certifiParagraph}}': 'certifiParagraph',
+      '{{subjectMatterType}}': 'subjectMatterType'
+    };
+
+    function initTabs() {
+      const tabContainer = $('chapterTabs');
+      chapterTitles.forEach((title, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `chapter-tab${idx === 0 ? ' active' : ''}`;
+        btn.textContent = title;
+        btn.dataset.target = `chapter-${idx + 1}`;
+        btn.addEventListener('click', () => switchChapter(btn.dataset.target, btn));
+        tabContainer.appendChild(btn);
+      });
+    }
+
+    function switchChapter(targetId, tabBtn) {
+      document.querySelectorAll('.chapter-pane').forEach((pane) => pane.classList.remove('active'));
+      document.querySelectorAll('.chapter-tab').forEach((tab) => tab.classList.remove('active'));
+      $(targetId).classList.add('active');
+      tabBtn.classList.add('active');
+    }
+
+    function createGroupItem(defaults = {}) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'group-item';
+      wrapper.innerHTML = `
+        <div class="inline">
+          <div class="field">
+            <label>评审文件名称</label>
+            <input data-field="certifiFileName" placeholder="例如：技术评审文件（第一轮）" value="${defaults.certifiFileName || ''}">
+          </div>
+          <div class="field">
+            <label>评审文件时间</label>
+            <input type="date" data-field="certifiFileDate" value="${defaults.certifiFileDate || ''}">
+          </div>
+        </div>
+        <div class="inline">
+          <div class="field">
+            <label>评审系统</label>
+            <select data-field="certifiSystem">
+              <option value="集团总师系统">集团总师系统</option>
+              <option value="院总师系统">院总师系统</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>评审组长</label>
+            <input data-field="certifiExpert" placeholder="例如：张三" value="${defaults.certifiExpert || ''}">
+          </div>
+        </div>
+        <button type="button" class="danger remove-group-btn">删除此条</button>
+      `;
+      wrapper.querySelector('[data-field="certifiSystem"]').value = defaults.certifiSystem || '集团总师系统';
+      wrapper.querySelector('.remove-group-btn').addEventListener('click', () => {
+        wrapper.remove();
+        if (!$('reviewGroupList').children.length) {
+          $('reviewGroupList').appendChild(createGroupItem());
+        }
+      });
+      return wrapper;
+    }
+
+    function getSubjectMatterType() {
+      const values = Array.from(document.querySelectorAll('input[name="subjectMatterType"]:checked')).map((el) => el.value);
+      return values.length ? values.join('、') : '货物或服务';
+    }
+
+    function formatReviewLine(template, data) {
+      return template.replace(/{{(.*?)}}/g, (_, key) => {
+        const v = data[key.trim()];
+        return v === undefined || v === null || v === '' ? `（${key.trim()}待补充）` : v;
+      });
+    }
+
+    function buildCertifiParagraphs(reviewTemplate) {
+      const groups = Array.from($('reviewGroupList').children);
+      const lines = groups.map((group, idx) => {
+        const read = (key) => group.querySelector(`[data-field="${key}"]`).value.trim();
+        const rowData = {
+          index: idx + 1,
+          certifiFileDate: read('certifiFileDate'),
+          certifiFileName: read('certifiFileName'),
+          certifiSystem: read('certifiSystem'),
+          certifiExpert: read('certifiExpert')
+        };
+        return formatReviewLine(reviewTemplate, rowData);
+      });
+      return lines.join('\n');
+    }
+
+    function readChapterData() {
+      return {
+        projectBackground: $('projectBackground').value.trim() || '（请填写项目背景）',
+        necessity: $('necessity').value.trim() || '（请填写需求必要性）',
+        subjectMatterType: getSubjectMatterType(),
+        chapter2Text: $('chapter2Text').value.trim() || '（第2章待完善）',
+        chapter3Text: $('chapter3Text').value.trim() || '（第3章待完善）',
+        chapter4Text: $('chapter4Text').value.trim() || '（第4章待完善）',
+        chapter5Text: $('chapter5Text').value.trim() || '（第5章待完善）',
+        chapter6Text: $('chapter6Text').value.trim() || '（第6章待完善）'
+      };
+    }
+
+    function applyTemplate(template, placeholderMap, data) {
+      let output = template;
+      Object.entries(placeholderMap).forEach(([placeholder, fieldKey]) => {
+        const value = data[fieldKey] ?? '';
+        output = output.split(placeholder).join(value);
+      });
+      return output;
+    }
+
+    function parseMappingOrFallback() {
+      try {
+        return JSON.parse($('mappingJsonEditor').value);
+      } catch {
+        alert('映射配置 JSON 格式不正确，已使用默认映射。');
+        return defaultMapping;
+      }
+    }
+
+    function generate() {
+      const mapping = parseMappingOrFallback();
+      const chapterData = readChapterData();
+      chapterData.certifiParagraph = buildCertifiParagraphs($('reviewLineTemplateEditor').value);
+
+      const chapter1Text = applyTemplate($('chapter1TemplateEditor').value, mapping, chapterData);
+      const fullDocument = [
+        chapter1Text,
+        `\n二、采购需求与范围\n${chapterData.chapter2Text}`,
+        `\n三、采购方式与组织形式\n${chapterData.chapter3Text}`,
+        `\n四、评审与定标原则\n${chapterData.chapter4Text}`,
+        `\n五、合同与履约管理\n${chapterData.chapter5Text}`,
+        `\n六、进度安排与保障措施\n${chapterData.chapter6Text}`
+      ].join('\n\n');
+
+      $('preview').textContent = fullDocument;
+      return fullDocument;
+    }
+
+    function exportWord(content) {
+      const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><pre style="font-family:Microsoft YaHei, sans-serif;white-space:pre-wrap;line-height:1.8;">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></body></html>`;
+      const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `采购实施方案_${new Date().toISOString().slice(0, 10)}.doc`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function getChapter1Draft() {
+      const groups = Array.from($('reviewGroupList').children).map((group) => {
+        const read = (key) => group.querySelector(`[data-field="${key}"]`).value.trim();
+        return {
+          certifiFileName: read('certifiFileName'),
+          certifiFileDate: read('certifiFileDate'),
+          certifiSystem: read('certifiSystem'),
+          certifiExpert: read('certifiExpert')
+        };
+      });
+      const subjectMatterType = Array.from(document.querySelectorAll('input[name="subjectMatterType"]:checked')).map((el) => el.value);
+      return {
+        projectBackground: $('projectBackground').value,
+        necessity: $('necessity').value,
+        subjectMatterType,
+        groups
+      };
+    }
+
+    function applyChapter1Draft(draft) {
+      $('projectBackground').value = draft.projectBackground || '';
+      $('necessity').value = draft.necessity || '';
+      document.querySelectorAll('input[name="subjectMatterType"]').forEach((el) => {
+        el.checked = Array.isArray(draft.subjectMatterType) ? draft.subjectMatterType.includes(el.value) : false;
+      });
+      $('reviewGroupList').innerHTML = '';
+      const rows = Array.isArray(draft.groups) && draft.groups.length ? draft.groups : [{}];
+      rows.forEach((row) => $('reviewGroupList').appendChild(createGroupItem(row)));
+    }
+
+    function saveHint(chapter, text) {
+      $(`save-hint-${chapter}`).textContent = text;
+    }
+
+    function saveChapter(chapterNo) {
+      const now = new Date().toLocaleString();
+      if (chapterNo === 1) {
+        localStorage.setItem(STORAGE_KEYS.chapter1, JSON.stringify(getChapter1Draft()));
+      }
+      if (chapterNo === 2) localStorage.setItem(STORAGE_KEYS.chapter2, $('chapter2Text').value);
+      if (chapterNo === 3) localStorage.setItem(STORAGE_KEYS.chapter3, $('chapter3Text').value);
+      if (chapterNo === 4) localStorage.setItem(STORAGE_KEYS.chapter4, $('chapter4Text').value);
+      if (chapterNo === 5) localStorage.setItem(STORAGE_KEYS.chapter5, $('chapter5Text').value);
+      if (chapterNo === 6) localStorage.setItem(STORAGE_KEYS.chapter6, $('chapter6Text').value);
+      saveHint(chapterNo, `已暂存：${now}`);
+    }
+
+    function saveAllChapters() {
+      [1, 2, 3, 4, 5, 6].forEach((chapterNo) => saveChapter(chapterNo));
+      alert('已完成全部章节暂存。');
+    }
+
+    function loadDrafts() {
+      const chapter1 = localStorage.getItem(STORAGE_KEYS.chapter1);
+      if (chapter1) {
+        try {
+          applyChapter1Draft(JSON.parse(chapter1));
+          saveHint(1, '已加载本地暂存');
+        } catch {
+          $('reviewGroupList').appendChild(createGroupItem());
+        }
+      } else {
+        $('reviewGroupList').appendChild(createGroupItem());
+      }
+
+      const chapter2 = localStorage.getItem(STORAGE_KEYS.chapter2);
+      const chapter3 = localStorage.getItem(STORAGE_KEYS.chapter3);
+      const chapter4 = localStorage.getItem(STORAGE_KEYS.chapter4);
+      const chapter5 = localStorage.getItem(STORAGE_KEYS.chapter5);
+      const chapter6 = localStorage.getItem(STORAGE_KEYS.chapter6);
+
+      if (chapter2 !== null) { $('chapter2Text').value = chapter2; saveHint(2, '已加载本地暂存'); }
+      if (chapter3 !== null) { $('chapter3Text').value = chapter3; saveHint(3, '已加载本地暂存'); }
+      if (chapter4 !== null) { $('chapter4Text').value = chapter4; saveHint(4, '已加载本地暂存'); }
+      if (chapter5 !== null) { $('chapter5Text').value = chapter5; saveHint(5, '已加载本地暂存'); }
+      if (chapter6 !== null) { $('chapter6Text').value = chapter6; saveHint(6, '已加载本地暂存'); }
+    }
+
+    function resetEditors() {
+      $('chapter1TemplateEditor').value = defaultChapter1Template;
+      $('reviewLineTemplateEditor').value = defaultReviewLineTemplate;
+      $('mappingJsonEditor').value = JSON.stringify(defaultMapping, null, 2);
+      localStorage.removeItem(STORAGE_KEYS.admin);
+    }
+
+    function loadAdminConfig() {
+      const cached = localStorage.getItem(STORAGE_KEYS.admin);
+      if (!cached) {
+        resetEditors();
+        return;
+      }
+      try {
+        const parsed = JSON.parse(cached);
+        $('chapter1TemplateEditor').value = parsed.chapter1Template || defaultChapter1Template;
+        $('reviewLineTemplateEditor').value = parsed.reviewLineTemplate || defaultReviewLineTemplate;
+        $('mappingJsonEditor').value = JSON.stringify(parsed.mapping || defaultMapping, null, 2);
+      } catch {
+        resetEditors();
+      }
+    }
+
+    function saveAdminConfig() {
+      try {
+        const config = {
+          chapter1Template: $('chapter1TemplateEditor').value,
+          reviewLineTemplate: $('reviewLineTemplateEditor').value,
+          mapping: JSON.parse($('mappingJsonEditor').value)
+        };
+        localStorage.setItem(STORAGE_KEYS.admin, JSON.stringify(config));
+        alert('管理配置已保存。');
+      } catch {
+        alert('保存失败：字段映射配置 JSON 格式不正确。');
+      }
+    }
+
+    function toggleAdminPanel() {
+      if (!confirm('该区域仅供管理员调整模板与映射，普通用户请勿修改。确认继续进入吗？')) {
+        return;
+      }
+      $('adminPanel').classList.toggle('open');
+    }
+
+    function resetForm() {
+      $('projectBackground').value = '';
+      $('necessity').value = '';
+      ['chapter2Text', 'chapter3Text', 'chapter4Text', 'chapter5Text', 'chapter6Text'].forEach((id) => { $(id).value = ''; });
+      document.querySelectorAll('input[name="subjectMatterType"]').forEach((el) => { el.checked = false; });
+      $('reviewGroupList').innerHTML = '';
+      $('reviewGroupList').appendChild(createGroupItem());
+      $('preview').textContent = '请填写信息后点击“生成文档”。';
+      [1, 2, 3, 4, 5, 6].forEach((chapterNo) => saveHint(chapterNo, ''));
+    }
+
+    $('addGroupBtn').addEventListener('click', () => $('reviewGroupList').appendChild(createGroupItem()));
+
+    document.querySelectorAll('.save-chapter-btn').forEach((btn) => {
+      btn.addEventListener('click', () => saveChapter(Number(btn.dataset.save)));
+    });
+
+    $('saveAllBtn').addEventListener('click', saveAllChapters);
+    $('adminToggleBtn').addEventListener('click', toggleAdminPanel);
+    $('saveAdminConfigBtn').addEventListener('click', saveAdminConfig);
+    $('resetEditorBtn').addEventListener('click', () => {
+      if (confirm('确认重置模板与映射配置为默认值吗？')) {
+        resetEditors();
+      }
+    });
+
+    $('generateBtn').addEventListener('click', generate);
+    $('copyBtn').addEventListener('click', async () => {
+      const text = generate();
+      try {
+        await navigator.clipboard.writeText(text);
+        alert('文档已复制');
+      } catch {
+        alert('复制失败，请手动复制预览区内容');
+      }
+    });
+
+    $('downloadWordBtn').addEventListener('click', () => {
+      const text = generate();
+      exportWord(text);
+    });
+
+    $('resetFormBtn').addEventListener('click', resetForm);
+
+    initTabs();
+    loadAdminConfig();
+    loadDrafts();
+  </script>
+</body>
+</html>
